@@ -94,7 +94,8 @@ exports.uploadLessonPdf = async (req, res) => {
     if (!course) return res.status(404).json({ message: 'Course not found' });
     const lesson = course.lessons.id(req.params.lessonId);
     if (!lesson) return res.status(404).json({ message: 'Lesson not found' });
-    lesson.pdfUrl = `/uploads/${req.file.filename}`;
+    // req.file.path is the full Cloudinary URL when using CloudinaryStorage
+    lesson.pdfUrl = req.file.path;
     await course.save();
     res.json({ pdfUrl: lesson.pdfUrl });
   } catch (err) {

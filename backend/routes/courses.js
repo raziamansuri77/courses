@@ -1,15 +1,22 @@
 const router = require('express').Router();
 const multer = require('multer');
-const path = require('path');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const { protect, instructor } = require('../middleware/auth');
 const {
   getCourses, getCourse, createCourse, updateCourse, deleteCourse,
   getInstructorCourses, addLesson, deleteLesson, uploadLessonPdf
 } = require('../controllers/courseController');
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, '../uploads')),
-  filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: { folder: 'learnhub-pdfs', resource_type: 'raw', format: 'pdf' },
 });
 const upload = multer({ storage, fileFilter: (req, file, cb) => cb(null, file.mimetype === 'application/pdf') });
 

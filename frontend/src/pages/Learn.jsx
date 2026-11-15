@@ -5,11 +5,10 @@ import PdfViewer from '../components/PdfViewer';
 
 const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
-function getPdfProxyUrl(pdfUrl) {
-  const filename = pdfUrl?.split('/uploads/')[1];
+function getPdfProxyUrl(courseId, lessonId) {
   const token = localStorage.getItem('token');
-  if (!filename || !token) return null;
-  return `${API_BASE}/api/pdf/${filename}?token=${token}`;
+  if (!token) return null;
+  return `${API_BASE}/api/pdf/${courseId}/${lessonId}?token=${token}`;
 }
 
 export default function Learn() {
@@ -60,7 +59,7 @@ export default function Learn() {
               </div>
             )}
             <div style={styles.lessonContent}>{activeLesson.content}</div>
-            {activeLesson.pdfUrl && getPdfProxyUrl(activeLesson.pdfUrl) && <PdfViewer proxyUrl={getPdfProxyUrl(activeLesson.pdfUrl)} />}
+            {activeLesson.pdfUrl && getPdfProxyUrl(courseId, activeLesson._id) && <PdfViewer proxyUrl={getPdfProxyUrl(courseId, activeLesson._id)} />}
             {!isCompleted(activeLesson._id) && (
               <button onClick={() => markComplete(activeLesson._id)} style={styles.completeBtn}>Mark as Complete ✓</button>
             )}

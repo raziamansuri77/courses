@@ -13,24 +13,26 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/courses', require('./routes/courses'));
 app.use('/api/enrollments', require('./routes/enrollments'));
 
-// Protected PDF proxy — authenticated users only, view only, no download
+// Protected PDF proxy — authenticated users only, streams from Cloudinary, no download
 const jwt = require('jsonwebtoken');
-const fs = require('fs');
-app.get('/api/pdf/:filename', (req, res) => {
+const https = require('https');
+const http = require('http');
+const Course = require('./models/Course');
+app.get('/api/pdf/:courseId/:lessonId', async (req, res) => {
   const token = req.query.token;
   if (!token) return res.status(401).end();
   try { jwt.verify(token, process.env.JWT_SECRET); }
   catch { return res.status(401).end(); }
-  const filename = path.basename(req.params.filename);
-  const filePath = path.join(__dirname, 'uploads', filename);
-  if (!fs.existsSync(filePath)) return res.status(404).end();
+  const course = await Course.findById(req.params.courseId);
+  if (!course) return res.status(404).end();
+  const lesson = course.lessons.id(req.params.lessonId);
+  if (!lesson || !lesson.pdfUrl) return res.status(404).end();
+  const pdfUrl = lesson.pdfUrl;
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', 'inline');
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-  fs.createReadStream(filePath).pipe(res);
+  res.setHeader('Cache-Control', 'no-store');
+  const client = pdfUrl.startsWith('https') ? https : http;
+  client.get(pdfUrl, stream => stream.pipe(res)).on('error', () => res.status(500).end());
 });
 
 mongoose.connect(process.env.MONGO_URI)

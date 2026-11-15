@@ -5,7 +5,7 @@ import api from '../api/axios';
 const CATEGORIES = ['Web Development', 'Data Science', 'Design', 'Business', 'Marketing', 'Photography'];
 const emptyForm = { title: '', description: '', category: 'Web Development', price: 0, thumbnail: '', published: false };
 const emptyLesson = { title: '', content: '', videoUrl: '', duration: '' };
-const API_BASE = 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
 export default function InstructorDashboard() {
   const [courses, setCourses] = useState([]);
@@ -127,7 +127,7 @@ export default function InstructorDashboard() {
                   <div key={lesson._id} style={styles.lessonRow}>
                     <span>{i + 1}. {lesson.title}</span>
                     {lesson.duration && <span style={styles.duration}>{lesson.duration} min</span>}
-                    {lesson.pdfUrl && <a href={`${API_BASE}${lesson.pdfUrl}`} target="_blank" rel="noreferrer" style={styles.pdfBadge}>📄 PDF</a>}
+                    {lesson.pdfUrl && <a href={lesson.pdfUrl} target="_blank" rel="noreferrer" style={styles.pdfBadge}>📄 PDF</a>}
                     <button onClick={() => handleDeleteLesson(course._id, lesson._id)} style={styles.deleteLessonBtn}>✕</button>
                   </div>
                 ))}
