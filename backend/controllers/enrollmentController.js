@@ -64,6 +64,24 @@ exports.getPendingRequests = async (req, res) => {
   }
 };
 
+// Instructor: course-wise enrollment overview
+exports.getEnrollmentOverview = async (req, res) => {
+  try {
+    const courses = await Course.find({ instructor: req.user._id }).select('title');
+    const courseIds = courses.map(c => c._id);
+    const enrollments = await Enrollment.find({ course: { $in: courseIds } })
+      .populate('student', 'name email')
+      .select('course student status progress createdAt');
+    const overview = courses.map(course => ({
+      course: { _id: course._id, title: course.title },
+      students: enrollments.filter(e => e.course.toString() === course._id.toString()),
+    }));
+    res.json(overview);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // Instructor: approve or reject an enrollment
 exports.updateEnrollmentStatus = async (req, res) => {
   try {
