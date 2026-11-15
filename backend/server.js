@@ -15,8 +15,9 @@ app.use('/api/enrollments', require('./routes/enrollments'));
 
 // PDF proxy — fetches from Cloudinary server-side, streams to authenticated user
 const jwt = require('jsonwebtoken');
-const https = require('https');
+const axios = require('axios');
 const Course = require('./models/Course');
+
 app.get('/api/pdf/:courseId/:lessonId', async (req, res) => {
   const token = req.query.token;
   if (!token) return res.status(401).end();
@@ -27,12 +28,15 @@ app.get('/api/pdf/:courseId/:lessonId', async (req, res) => {
     if (!course) return res.status(404).end();
     const lesson = course.lessons.id(req.params.lessonId);
     if (!lesson || !lesson.pdfUrl) return res.status(404).end();
+    const response = await axios.get(lesson.pdfUrl, { responseType: 'stream', maxRedirects: 5 });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'inline');
     res.setHeader('Cache-Control', 'no-store');
-    https.get(lesson.pdfUrl, cloudRes => cloudRes.pipe(res))
-      .on('error', () => res.status(500).end());
-  } catch { res.status(500).end(); }
+    response.data.pipe(res);
+  } catch (err) {
+    console.error('PDF proxy error:', err.message);
+    res.status(500).end();
+  }
 });
 
 
