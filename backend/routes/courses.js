@@ -16,7 +16,7 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
   cloudinary,
-  params: { folder: 'learnhub-pdfs', resource_type: 'raw', format: 'pdf' },
+  params: { folder: 'learnhub-pdfs', resource_type: 'raw', type: 'upload', format: 'pdf' },
 });
 const upload = multer({ storage, fileFilter: (req, file, cb) => cb(null, file.mimetype === 'application/pdf') });
 

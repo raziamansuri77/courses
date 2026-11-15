@@ -5,6 +5,7 @@ const lessonSchema = new mongoose.Schema({
   content: { type: String, required: true },
   videoUrl: String,
   pdfUrl: String,
+  pdfPublicId: String,
   duration: Number,
   order: { type: Number, default: 0 },
 });
