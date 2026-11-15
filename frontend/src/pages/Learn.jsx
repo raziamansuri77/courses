@@ -3,14 +3,6 @@ import { useParams } from 'react-router-dom';
 import api from '../api/axios';
 import PdfViewer from '../components/PdfViewer';
 
-const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
-
-function getPdfProxyUrl(courseId, lessonId) {
-  const token = localStorage.getItem('token');
-  if (!token) return null;
-  return `${API_BASE}/api/pdf/${courseId}/${lessonId}?token=${token}`;
-}
-
 export default function Learn() {
   const { courseId } = useParams();
   const [course, setCourse] = useState(null);
@@ -59,7 +51,7 @@ export default function Learn() {
               </div>
             )}
             <div style={styles.lessonContent}>{activeLesson.content}</div>
-            {activeLesson.pdfUrl && getPdfProxyUrl(courseId, activeLesson._id) && <PdfViewer proxyUrl={getPdfProxyUrl(courseId, activeLesson._id)} />}
+            {activeLesson.pdfUrl && <PdfViewer proxyUrl={activeLesson.pdfUrl} />}
             {!isCompleted(activeLesson._id) && (
               <button onClick={() => markComplete(activeLesson._id)} style={styles.completeBtn}>Mark as Complete ✓</button>
             )}
