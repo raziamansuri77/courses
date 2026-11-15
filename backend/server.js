@@ -5,7 +5,7 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
-app.use(cors({ origin: 'http://localhost:5173', exposedHeaders: ['Content-Disposition'] }));
+app.use(cors({ origin: ['http://localhost:5173', 'https://courses-iads.onrender.com', /\.vercel\.app$/], exposedHeaders: ['Content-Disposition'] }));
 app.use(express.json());
 // /uploads is NOT served statically — PDFs only accessible via /api/pdf proxy
 
