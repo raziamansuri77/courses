@@ -9,15 +9,22 @@ const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://lo
 
 export default function InstructorDashboard() {
   const [courses, setCourses] = useState([]);
+  const [requests, setRequests] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState(null);
   const [lessonForm, setLessonForm] = useState(null);
   const [lessonData, setLessonData] = useState(emptyLesson);
 
-  useEffect(() => { fetchCourses(); }, []);
+  useEffect(() => { fetchCourses(); fetchRequests(); }, []);
 
   const fetchCourses = () => api.get('/courses/my').then(res => setCourses(res.data));
+  const fetchRequests = () => api.get('/enrollments/requests/pending').then(res => setRequests(res.data));
+
+  const handleApproval = async (enrollmentId, status) => {
+    await api.put(`/enrollments/requests/${enrollmentId}`, { status });
+    fetchRequests();
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -104,6 +111,24 @@ export default function InstructorDashboard() {
       )}
 
       <div style={styles.courseList}>
+        {requests.length > 0 && (
+          <div style={styles.requestsSection}>
+            <h2 style={styles.sectionTitle}>📋 Enrollment Requests ({requests.length})</h2>
+            {requests.map(req => (
+              <div key={req._id} style={styles.requestCard}>
+                <div>
+                  <strong>{req.student?.name}</strong> <span style={styles.email}>{req.student?.email}</span>
+                  <p style={styles.reqCourse}>Course: {req.course?.title}</p>
+                </div>
+                <div style={styles.reqActions}>
+                  <button onClick={() => handleApproval(req._id, 'approved')} style={styles.approveBtn}>✓ Approve</button>
+                  <button onClick={() => handleApproval(req._id, 'rejected')} style={styles.rejectBtn}>✕ Reject</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <h2 style={styles.sectionTitle}>My Courses</h2>
         {courses.length === 0 ? <p>No courses yet. Create your first course!</p> : courses.map(course => (
           <div key={course._id} style={styles.courseCard}>
             <div style={styles.courseHeader}>
@@ -165,4 +190,12 @@ const styles = {
   deleteLessonBtn: { background: 'none', border: 'none', color: '#dc3545', cursor: 'pointer', fontSize: '0.9rem', padding: '0 0.3rem' },
   fileLabel: { display: 'inline-block', padding: '0.6rem 1rem', background: '#f0f0f0', borderRadius: '4px', cursor: 'pointer', fontSize: '0.9rem', border: '1px dashed #ccc' },
   pdfBadge: { fontSize: '0.75rem', background: '#fff3cd', color: '#856404', padding: '0.15rem 0.5rem', borderRadius: '4px', textDecoration: 'none', marginLeft: 'auto' },
+  requestsSection: { marginBottom: '2rem' },
+  sectionTitle: { color: '#1a1a2e', marginBottom: '1rem', fontSize: '1.2rem' },
+  requestCard: { background: '#fff', border: '1px solid #ffe082', borderRadius: '8px', padding: '1rem 1.5rem', marginBottom: '0.8rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' },
+  email: { color: '#888', fontSize: '0.85rem', marginLeft: '0.5rem' },
+  reqCourse: { margin: '0.3rem 0 0', color: '#555', fontSize: '0.9rem' },
+  reqActions: { display: 'flex', gap: '0.5rem' },
+  approveBtn: { background: '#28a745', color: '#fff', padding: '0.4rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' },
+  rejectBtn: { background: '#dc3545', color: '#fff', padding: '0.4rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' },
 };

@@ -30,6 +30,20 @@ export default function Learn() {
   const isCompleted = (lessonId) => enrollment?.completedLessons?.includes(lessonId);
 
   if (!course) return <p style={{ textAlign: 'center', padding: '2rem' }}>Loading...</p>;
+  if (!enrollment || enrollment.status === 'pending')
+    return (
+      <div style={{ textAlign: 'center', padding: '4rem' }}>
+        <h2 style={{ color: '#1a1a2e' }}>⏳ Approval Pending</h2>
+        <p style={{ color: '#888' }}>Your enrollment request is waiting for instructor approval.</p>
+      </div>
+    );
+  if (enrollment.status === 'rejected')
+    return (
+      <div style={{ textAlign: 'center', padding: '4rem' }}>
+        <h2 style={{ color: '#e94560' }}>❌ Enrollment Rejected</h2>
+        <p style={{ color: '#888' }}>The instructor has rejected your enrollment request.</p>
+      </div>
+    );
 
   return (
     <div style={styles.container}>

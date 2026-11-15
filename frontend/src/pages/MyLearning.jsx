@@ -22,19 +22,25 @@ export default function MyLearning() {
         </div>
       ) : (
         <div style={styles.grid}>
-          {enrollments.map(({ course, progress, _id }) => (
+          {enrollments.map(({ course, progress, status, _id }) => (
             <div key={_id} style={styles.card}>
               <div style={styles.cardThumb}>{course?.category}</div>
               <div style={styles.cardBody}>
                 <h3 style={styles.cardTitle}>{course?.title}</h3>
                 <p style={styles.cardInstructor}>by {course?.instructor?.name}</p>
-                <div style={styles.progressBar}>
-                  <div style={{ ...styles.progressFill, width: `${progress}%` }} />
-                </div>
-                <p style={styles.progressText}>{progress}% complete</p>
-                <Link to={`/learn/${course?._id}`} style={styles.continueBtn}>
-                  {progress === 0 ? 'Start Learning' : progress === 100 ? 'Review Course' : 'Continue'}
-                </Link>
+                {status === 'pending' && <span style={styles.badgePending}>⏳ Pending Approval</span>}
+                {status === 'rejected' && <span style={styles.badgeRejected}>❌ Rejected</span>}
+                {status === 'approved' && (
+                  <>
+                    <div style={styles.progressBar}>
+                      <div style={{ ...styles.progressFill, width: `${progress}%` }} />
+                    </div>
+                    <p style={styles.progressText}>{progress}% complete</p>
+                    <Link to={`/learn/${course?._id}`} style={styles.continueBtn}>
+                      {progress === 0 ? 'Start Learning' : progress === 100 ? 'Review Course' : 'Continue'}
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           ))}
@@ -59,4 +65,6 @@ const styles = {
   progressFill: { background: '#e94560', height: '100%', borderRadius: '4px', transition: 'width 0.3s' },
   progressText: { margin: 0, fontSize: '0.8rem', color: '#888' },
   continueBtn: { background: '#1a1a2e', color: '#fff', padding: '0.6rem', borderRadius: '4px', textDecoration: 'none', textAlign: 'center', marginTop: '0.5rem' },
+  badgePending: { background: '#fff3cd', color: '#856404', padding: '0.3rem 0.7rem', borderRadius: '4px', fontSize: '0.8rem', textAlign: 'center' },
+  badgeRejected: { background: '#f8d7da', color: '#721c24', padding: '0.3rem 0.7rem', borderRadius: '4px', fontSize: '0.8rem', textAlign: 'center' },
 };

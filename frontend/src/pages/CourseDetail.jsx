@@ -23,9 +23,9 @@ export default function CourseDetail() {
     setEnrolling(true);
     try {
       await api.post(`/enrollments/${id}`);
-      navigate(`/learn/${id}`);
+      setEnrollment({ status: 'pending' });
     } catch (err) {
-      alert(err.response?.data?.message || 'Enrollment failed');
+      alert(err.response?.data?.message || 'Request failed');
     } finally { setEnrolling(false); }
   };
 
@@ -42,10 +42,14 @@ export default function CourseDetail() {
         </div>
         <div style={styles.card}>
           <div style={styles.price}>{course.price === 0 ? 'Free' : `$${course.price}`}</div>
-          {enrollment ? (
+          {enrollment?.status === 'approved' ? (
             <button onClick={() => navigate(`/learn/${id}`)} style={styles.btn}>Continue Learning</button>
+          ) : enrollment?.status === 'pending' ? (
+            <button disabled style={{ ...styles.btn, background: '#f0ad4e', cursor: 'not-allowed' }}>⏳ Approval Pending</button>
+          ) : enrollment?.status === 'rejected' ? (
+            <button disabled style={{ ...styles.btn, background: '#dc3545', cursor: 'not-allowed' }}>❌ Enrollment Rejected</button>
           ) : (
-            <button onClick={handleEnroll} disabled={enrolling} style={styles.btn}>{enrolling ? 'Enrolling...' : 'Enroll Now'}</button>
+            <button onClick={handleEnroll} disabled={enrolling} style={styles.btn}>{enrolling ? 'Requesting...' : 'Request Enrollment'}</button>
           )}
           <ul style={styles.features}>
             <li>✅ {course.lessons?.length || 0} lessons</li>

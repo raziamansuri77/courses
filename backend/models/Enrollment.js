@@ -5,6 +5,7 @@ const enrollmentSchema = new mongoose.Schema({
   course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
   completedLessons: [{ type: mongoose.Schema.Types.ObjectId }],
   progress: { type: Number, default: 0 },
+  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
 }, { timestamps: true });
 
 enrollmentSchema.index({ student: 1, course: 1 }, { unique: true });
