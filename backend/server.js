@@ -34,13 +34,8 @@ app.get('/api/pdf/:courseId/:lessonId', async (req, res) => {
     const course = await Course.findById(req.params.courseId);
     if (!course) return res.status(404).end();
     const lesson = course.lessons.id(req.params.lessonId);
-    if (!lesson || !lesson.pdfPublicId) return res.status(404).end();
-    // generate a signed URL valid for 5 minutes
-    const signedUrl = cloudinary.utils.private_download_url(
-      lesson.pdfPublicId, 'pdf',
-      { resource_type: 'raw', expires_at: Math.floor(Date.now() / 1000) + 300, attachment: false }
-    );
-    const response = await axios.get(signedUrl, { responseType: 'stream', maxRedirects: 5 });
+    if (!lesson || !lesson.pdfUrl) return res.status(404).end();
+    const response = await axios.get(lesson.pdfUrl, { responseType: 'stream', maxRedirects: 5 });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'inline');
     res.setHeader('Cache-Control', 'no-store');
