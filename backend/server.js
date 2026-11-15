@@ -13,10 +13,17 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/courses', require('./routes/courses'));
 app.use('/api/enrollments', require('./routes/enrollments'));
 
-// PDF proxy — fetches from Cloudinary server-side, streams to authenticated user
+// PDF proxy — generates signed Cloudinary URL, streams to authenticated user
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
+const cloudinary = require('cloudinary').v2;
 const Course = require('./models/Course');
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 app.get('/api/pdf/:courseId/:lessonId', async (req, res) => {
   const token = req.query.token;
@@ -27,8 +34,13 @@ app.get('/api/pdf/:courseId/:lessonId', async (req, res) => {
     const course = await Course.findById(req.params.courseId);
     if (!course) return res.status(404).end();
     const lesson = course.lessons.id(req.params.lessonId);
-    if (!lesson || !lesson.pdfUrl) return res.status(404).end();
-    const response = await axios.get(lesson.pdfUrl, { responseType: 'stream', maxRedirects: 5 });
+    if (!lesson || !lesson.pdfPublicId) return res.status(404).end();
+    // generate a signed URL valid for 5 minutes
+    const signedUrl = cloudinary.utils.private_download_url(
+      lesson.pdfPublicId, 'pdf',
+      { resource_type: 'raw', expires_at: Math.floor(Date.now() / 1000) + 300, attachment: false }
+    );
+    const response = await axios.get(signedUrl, { responseType: 'stream', maxRedirects: 5 });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'inline');
     res.setHeader('Cache-Control', 'no-store');

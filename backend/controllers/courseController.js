@@ -97,7 +97,7 @@ exports.uploadLessonPdf = async (req, res) => {
     // req.file.path = full Cloudinary public URL
     // req.file.filename = public_id
     lesson.pdfUrl = req.file.path;
-    lesson.pdfPublicId = req.file.filename;
+    lesson.pdfPublicId = req.file.filename.replace(/\.pdf$/, '');
     await course.save();
     res.json({ pdfUrl: lesson.pdfUrl });
   } catch (err) {
